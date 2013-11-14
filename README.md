@@ -10,6 +10,7 @@ Some rails specific options.
 ```ruby
 set :rails_env, 'staging'       # If the environment differs from the stage name
 set :migration_role, 'migrator' # Defaults to 'db'
+set :rails_folder, 'rails'      # If your rails app is in a subfolder. Defaults assumes rails app is in the root of your repo
 ```
 
 If you need to touch `public/images`, `public/javascripts` and `public/stylesheets` on each deploy:

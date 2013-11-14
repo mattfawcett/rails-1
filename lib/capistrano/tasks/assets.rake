@@ -15,7 +15,7 @@ namespace :deploy do
     on roles :web do
       assets = fetch(:normalize_asset_timestamps)
       if assets
-        within release_path do
+        within rails_path do
           execute :find, "#{assets} -exec touch -t #{asset_timestamp} {} ';'; true"
         end
       end
@@ -32,7 +32,7 @@ namespace :deploy do
   desc 'Cleanup expired assets'
   task :cleanup_assets => [:set_rails_env] do
     on roles :web do
-      within release_path do
+      within rails_path do
         with rails_env: fetch(:rails_env) do
           execute :rake, "assets:clean"
         end
@@ -56,9 +56,9 @@ namespace :deploy do
   after 'deploy:reverted', 'deploy:rollback_assets'
 
   namespace :assets do
-    task :precompile do
+    task :precompile => [:set_rails_env] do
       on roles :web do
-        within release_path do
+        within rails_path do
           with rails_env: fetch(:rails_env) do
             execute :rake, "assets:precompile"
           end
@@ -67,20 +67,20 @@ namespace :deploy do
     end
 
     task :backup_manifest do
-      on roles :web do
-        within release_path do
+      on roles :web => [:set_rails_env] do
+        within rails_path do
           execute :cp,
-            release_path.join('public', 'assets', 'manifest*'),
-            release_path.join('assets_manifest_backup')
+            rails_path.join('public', 'assets', 'manifest*'),
+            rails_path.join('assets_manifest_backup')
         end
       end
     end
 
-    task :restore_manifest do
+    task :restore_manifest => [:set_rails_env] do
       on roles :web do
-        within release_path do
-          source = release_path.join('assets_manifest_backup')
-          target = capture(:ls, release_path.join('public', 'assets',
+        within rails_path do
+          source = rails_path.join('assets_manifest_backup')
+          target = capture(:ls, rails_path.join('public', 'assets',
                                                   'manifest*')).strip
           if test "[[ -f #{source} && -f #{target} ]]"
             execute :cp, source, target
