@@ -4,3 +4,7 @@ namespace :deploy do
     set :rails_path, release_path.join(fetch(:rails_folder, ''))
   end
 end
+
+Capistrano::DSL.stages.each do |stage|
+  after stage, 'deploy:set_rails_env'
+end
